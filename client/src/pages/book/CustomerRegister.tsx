@@ -168,7 +168,7 @@ export function CustomerRegister() {
 
         <p className="mt-4 text-center text-sm text-slate-500">
           Already have an account?{' '}
-          <Link to="/book/login" className="font-medium text-cyan-600 hover:underline">
+          <Link to="/" className="font-medium text-cyan-600 hover:underline">
             Sign in
           </Link>
         </p>

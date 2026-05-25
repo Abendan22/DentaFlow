@@ -113,7 +113,7 @@ export function Reports() {
       {report && (
         <div className="print-area rounded-xl bg-white p-8 shadow-sm">
           <div className="mb-6 border-b pb-4 text-center">
-            <h1 className="text-2xl font-bold text-gray-900">DentaFlow</h1>
+            <h1 className="text-2xl font-bold text-gray-900">DentaGlow</h1>
             <h2 className="mt-1 text-lg font-semibold text-gray-700">
               {report.title}
             </h2>

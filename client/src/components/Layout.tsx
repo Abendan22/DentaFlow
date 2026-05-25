@@ -11,23 +11,27 @@ import {
   IconReport,
   IconService,
   IconStaff,
+  IconActivity,
 } from './icons/SidebarIcons'
 
-const nav = [
-  { to: '/dashboard', label: 'Dashboard', icon: IconDashboard },
-  { to: '/genders', label: 'Gender', icon: IconGender },
-  { to: '/users', label: 'Patient Record', icon: IconPatient },
-  { to: '/doctors', label: 'Dental Doctor', icon: IconDoctor },
-  { to: '/services', label: 'Services', icon: IconService },
-  { to: '/staff', label: 'Staff', icon: IconStaff },
-  { to: '/appointments', label: 'Appointment', icon: IconCalendar },
-  { to: '/reports', label: 'Report', icon: IconReport },
+const navAll = [
+  { to: '/dashboard', label: 'Dashboard', icon: IconDashboard, adminOnly: false },
+  { to: '/genders', label: 'Gender', icon: IconGender, adminOnly: false },
+  { to: '/users', label: 'Patient Record', icon: IconPatient, adminOnly: false },
+  { to: '/doctors', label: 'Dental Doctor', icon: IconDoctor, adminOnly: false },
+  { to: '/services', label: 'Services', icon: IconService, adminOnly: false },
+  { to: '/staff', label: 'Staff', icon: IconStaff, adminOnly: false },
+  { to: '/appointments', label: 'Appointment', icon: IconCalendar, adminOnly: false },
+  { to: '/reports', label: 'Report', icon: IconReport, adminOnly: true },
+  { to: '/activity-logs', label: 'Activity Logs', icon: IconActivity, adminOnly: true },
 ]
 
 export function Layout() {
   const { user, logout } = useAuth()
   const toast = useToast()
   const initials = user?.initials ?? 'SA'
+  const isAdmin = user?.role === 'admin'
+  const nav = navAll.filter((item) => !item.adminOnly || isAdmin)
 
   return (
     <div className="flex min-h-screen">
@@ -37,7 +41,7 @@ export function Layout() {
             <BrandLogo size="lg" className="ring-white/20" />
             <div>
               <span className="block text-xl font-bold tracking-wide text-white hover:text-cyan-300">
-                DentaFlow
+                DentaGlow
               </span>
               <p className="text-[10px] font-medium uppercase tracking-wider text-gray-500">
                 Clinic System

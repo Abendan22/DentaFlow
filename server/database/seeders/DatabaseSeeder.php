@@ -35,6 +35,33 @@ class DatabaseSeeder extends Seeder
             ]
         );
 
+        $demoUser = User::updateOrCreate(
+            ['username' => 'user'],
+            [
+                'name' => 'Demo Patient',
+                'email' => 'user@dentaflow.local',
+                'password' => 'user123',
+                'role' => 'user',
+                'first_name' => 'Demo',
+                'last_name' => 'Patient',
+                'gender_id' => $male?->id,
+                'birth_date' => '1998-05-15',
+                'phone' => '09170000001',
+            ]
+        );
+
+        Patient::updateOrCreate(
+            ['user_id' => $demoUser->id],
+            [
+                'first_name' => 'Demo',
+                'last_name' => 'Patient',
+                'email' => 'user@dentaflow.local',
+                'phone' => '09170000001',
+                'gender_id' => $male?->id,
+                'birth_date' => '1998-05-15',
+            ]
+        );
+
         $doctors = [
             ['title' => 'Dr.', 'first_name' => 'Andre', 'last_name' => 'Adams DDS', 'phone' => '09171234501'],
             ['title' => 'Dr.', 'first_name' => 'Mayra', 'last_name' => 'Altenwerth DDS', 'phone' => '09171234502'],
@@ -56,7 +83,7 @@ class DatabaseSeeder extends Seeder
 
         foreach ($patients as $row) {
             Patient::updateOrCreate(
-                ['first_name' => $row['first_name'], 'last_name' => $row['last_name']],
+                ['first_name' => $row['first_name'], 'last_name' => $row['last_name'], 'user_id' => null],
                 [
                     'email' => strtolower($row['first_name']).'.'.strtolower($row['last_name']).'@patient.local',
                     ...$row,

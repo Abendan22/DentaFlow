@@ -15,8 +15,8 @@ export function CustomerLayout() {
           <div className="flex flex-col items-center gap-3 text-center">
             <BrandLogo size="lg" className="ring-white/20" />
             <div>
-              <p className="text-lg font-bold text-white">DentaFlow</p>
-              <p className="text-[10px] uppercase tracking-wider text-gray-500">Patient Portal</p>
+              <p className="text-lg font-bold text-white">DentaGlow</p>
+              <p className="text-[10px] uppercase tracking-wider text-gray-500">User Portal</p>
             </div>
           </div>
         </div>
@@ -40,7 +40,7 @@ export function CustomerLayout() {
         <div className="border-t border-white/10 p-4 text-center text-xs text-gray-500">
           <p className="mb-2 text-gray-300">{patient?.full_name}</p>
           <Link to="/" className="text-cyan-400 hover:underline">
-            Clinic staff login
+            Sign in
           </Link>
         </div>
       </aside>

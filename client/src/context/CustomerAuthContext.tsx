@@ -2,12 +2,11 @@ import {
   createContext,
   useCallback,
   useContext,
-  useEffect,
   useMemo,
-  useState,
   type ReactNode,
 } from 'react'
-import customerApi from '../api/customerApi'
+import api from '../api/client'
+import { useAuth } from './AuthContext'
 
 export interface CustomerPatient {
   id: number
@@ -22,7 +21,6 @@ export interface CustomerPatient {
 interface CustomerAuthContextValue {
   patient: CustomerPatient | null
   loading: boolean
-  login: (username: string, password: string) => Promise<void>
   register: (payload: Record<string, unknown>) => Promise<void>
   logout: () => Promise<void>
 }
@@ -30,47 +28,21 @@ interface CustomerAuthContextValue {
 const CustomerAuthContext = createContext<CustomerAuthContextValue | null>(null)
 
 export function CustomerAuthProvider({ children }: { children: ReactNode }) {
-  const [patient, setPatient] = useState<CustomerPatient | null>(null)
-  const [loading, setLoading] = useState(true)
-
-  useEffect(() => {
-    const token = localStorage.getItem('customer_token')
-    if (!token) {
-      setLoading(false)
-      return
-    }
-    customerApi
-      .get('/customer/me')
-      .then((res) => setPatient(res.data.patient))
-      .catch(() => localStorage.removeItem('customer_token'))
-      .finally(() => setLoading(false))
-  }, [])
-
-  const login = useCallback(async (username: string, password: string) => {
-    const res = await customerApi.post('/customer/login', { username, password })
-    localStorage.setItem('customer_token', res.data.token)
-    setPatient(res.data.patient)
-  }, [])
+  const { patient, loading, logout: authLogout } = useAuth()
 
   const register = useCallback(async (payload: Record<string, unknown>) => {
-    const res = await customerApi.post('/customer/register', payload)
-    localStorage.setItem('customer_token', res.data.token)
-    setPatient(res.data.patient)
+    const res = await api.post('/customer/register', payload)
+    localStorage.setItem('token', res.data.token)
+    window.location.href = '/book/appointments'
   }, [])
 
   const logout = useCallback(async () => {
-    try {
-      await customerApi.post('/customer/logout')
-    } catch {
-      /* ignore */
-    }
-    localStorage.removeItem('customer_token')
-    setPatient(null)
-  }, [])
+    await authLogout()
+  }, [authLogout])
 
   const value = useMemo(
-    () => ({ patient, loading, login, register, logout }),
-    [patient, loading, login, register, logout],
+    () => ({ patient, loading, register, logout }),
+    [patient, loading, register, logout],
   )
 
   return (

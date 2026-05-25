@@ -71,3 +71,14 @@ export interface ReportData {
   summary: Record<string, number>
   rows: ReportRow[]
 }
+
+export interface ActivityLog {
+  id: number
+  user_id: number | null
+  username: string
+  user_name: string
+  role?: string | null
+  activity: string
+  ip_address?: string | null
+  timestamp: string
+}

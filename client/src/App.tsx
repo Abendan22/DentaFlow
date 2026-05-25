@@ -3,7 +3,7 @@ import { Navigate, Route, Routes } from 'react-router-dom'
 import { Layout } from './components/Layout'
 import { CustomerLayout } from './components/CustomerLayout'
 import { AuthProvider, useAuth } from './context/AuthContext'
-import { CustomerAuthProvider, useCustomerAuth } from './context/CustomerAuthContext'
+import { CustomerAuthProvider } from './context/CustomerAuthContext'
 import { ConfirmProvider } from './context/ConfirmContext'
 import { ToastProvider } from './context/ToastContext'
 import { Login } from './pages/Login'
@@ -18,8 +18,8 @@ const Appointments = lazy(() =>
   import('./pages/Appointments').then((m) => ({ default: m.Appointments })),
 )
 const Reports = lazy(() => import('./pages/Reports').then((m) => ({ default: m.Reports })))
-const CustomerLogin = lazy(() =>
-  import('./pages/book/CustomerLogin').then((m) => ({ default: m.CustomerLogin })),
+const ActivityLogs = lazy(() =>
+  import('./pages/ActivityLogs').then((m) => ({ default: m.ActivityLogs })),
 )
 const CustomerRegister = lazy(() =>
   import('./pages/book/CustomerRegister').then((m) => ({ default: m.CustomerRegister })),
@@ -34,7 +34,7 @@ function PageLoader() {
   )
 }
 
-function PrivateRoute({ children }: { children: React.ReactNode }) {
+function AdminRoute({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth()
   if (loading) {
     return (
@@ -44,11 +44,13 @@ function PrivateRoute({ children }: { children: React.ReactNode }) {
     )
   }
   if (!user) return <Navigate to="/" replace />
+  if (user.role === 'user') return <Navigate to="/book/appointments" replace />
+  if (user.role !== 'admin') return <Navigate to="/" replace />
   return <>{children}</>
 }
 
-function CustomerPrivateRoute({ children }: { children: React.ReactNode }) {
-  const { patient, loading } = useCustomerAuth()
+function StaffRoute({ children }: { children: React.ReactNode }) {
+  const { user, loading } = useAuth()
   if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center text-gray-500">
@@ -56,7 +58,21 @@ function CustomerPrivateRoute({ children }: { children: React.ReactNode }) {
       </div>
     )
   }
-  if (!patient) return <Navigate to="/book/login" replace />
+  if (!user) return <Navigate to="/" replace />
+  if (user.role === 'user') return <Navigate to="/book/appointments" replace />
+  return <>{children}</>
+}
+
+function UserRoute({ children }: { children: React.ReactNode }) {
+  const { user, patient, loading } = useAuth()
+  if (loading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center text-gray-500">
+        Loading...
+      </div>
+    )
+  }
+  if (!user || user.role !== 'user' || !patient) return <Navigate to="/" replace />
   return <>{children}</>
 }
 
@@ -65,16 +81,7 @@ function AppRoutes() {
     <Routes>
       <Route path="/" element={<Login />} />
 
-      <Route
-        path="/book/login"
-        element={
-          <CustomerAuthProvider>
-            <Suspense fallback={<PageLoader />}>
-              <CustomerLogin />
-            </Suspense>
-          </CustomerAuthProvider>
-        }
-      />
+      <Route path="/book/login" element={<Navigate to="/" replace />} />
       <Route
         path="/book/register"
         element={
@@ -88,11 +95,9 @@ function AppRoutes() {
       <Route
         path="/book"
         element={
-          <CustomerAuthProvider>
-            <CustomerPrivateRoute>
-              <CustomerLayout />
-            </CustomerPrivateRoute>
-          </CustomerAuthProvider>
+          <UserRoute>
+            <CustomerLayout />
+          </UserRoute>
         }
       >
         <Route index element={<Navigate to="/book/appointments" replace />} />
@@ -108,9 +113,9 @@ function AppRoutes() {
 
       <Route
         element={
-          <PrivateRoute>
+          <StaffRoute>
             <Layout />
-          </PrivateRoute>
+          </StaffRoute>
         }
       >
         <Route
@@ -180,9 +185,21 @@ function AppRoutes() {
         <Route
           path="/reports"
           element={
-            <Suspense fallback={<PageLoader />}>
-              <Reports />
-            </Suspense>
+            <AdminRoute>
+              <Suspense fallback={<PageLoader />}>
+                <Reports />
+              </Suspense>
+            </AdminRoute>
+          }
+        />
+        <Route
+          path="/activity-logs"
+          element={
+            <AdminRoute>
+              <Suspense fallback={<PageLoader />}>
+                <ActivityLogs />
+              </Suspense>
+            </AdminRoute>
           }
         />
       </Route>
@@ -196,7 +213,9 @@ export default function App() {
     <ToastProvider>
       <ConfirmProvider>
         <AuthProvider>
-          <AppRoutes />
+          <CustomerAuthProvider>
+            <AppRoutes />
+          </CustomerAuthProvider>
         </AuthProvider>
       </ConfirmProvider>
     </ToastProvider>

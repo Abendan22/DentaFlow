@@ -13,6 +13,7 @@ class Patient extends Model
     use HasProfilePhoto, SoftDeletes;
 
     protected $fillable = [
+        'user_id',
         'username',
         'password',
         'api_token',
@@ -39,6 +40,11 @@ class Patient extends Model
             'birth_date' => 'date',
             'password' => 'hashed',
         ];
+    }
+
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class);
     }
 
     public function gender(): BelongsTo

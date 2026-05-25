@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import backgroundTeeth from '../assets/backgroundteeth1.jpg'
 import { BrandLogo } from '../components/BrandLogo'
@@ -11,15 +11,33 @@ import { FieldError } from '../components/FormField'
 import { fieldClass, isEmpty } from '../utils/validation'
 
 export function Login() {
-  const { login } = useAuth()
+  const { login, user, loading: authLoading } = useAuth()
   const toast = useToast()
   const navigate = useNavigate()
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState('')
-  const [loading, setLoading] = useState(false)
+  const [submitting, setSubmitting] = useState(false)
   const [fieldErrors, setFieldErrors] = useState({ username: false, password: false })
+
+  useEffect(() => {
+    if (authLoading) return
+    if (!user) return
+    if (user.role === 'admin') {
+      navigate('/dashboard', { replace: true })
+    } else {
+      navigate('/book/appointments', { replace: true })
+    }
+  }, [user, authLoading, navigate])
+
+  if (authLoading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center text-gray-500">
+        Loading...
+      </div>
+    )
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -28,17 +46,20 @@ export function Login() {
     if (errs.username || errs.password) return
 
     setError('')
-    setLoading(true)
+    setSubmitting(true)
     try {
-      await login(username, password)
-      toast.success('Login successful!')
-      navigate('/dashboard')
+      const result = await login(username, password)
+      if (result.role === 'user') {
+        toast.success('Welcome back!')
+        navigate('/book/appointments')
+      } else {
+        toast.success('Login successful!')
+        navigate('/dashboard')
+      }
     } catch (err) {
-      const msg = getErrorMessage(err, 'Invalid username or password.')
-      setError(msg)
-      toast.error(msg)
+      setError(getErrorMessage(err, 'Invalid username or password.'))
     } finally {
-      setLoading(false)
+      setSubmitting(false)
     }
   }
 
@@ -56,7 +77,6 @@ export function Login() {
       <div className="relative z-10 flex w-full flex-col justify-center px-6 py-10 sm:px-10 lg:w-[40%] lg:max-w-xl lg:shrink-0 lg:px-12 xl:px-16">
         <div className="mx-auto w-full max-w-md">
           <div className="mb-8 text-center lg:text-left">
-
             <p className="mb-2 text-sm font-semibold uppercase tracking-widest text-cyan-600">
               Welcome to
             </p>
@@ -64,11 +84,13 @@ export function Login() {
             <div className="flex items-center justify-center gap-3 lg:justify-start">
               <BrandLogo size="md" />
               <h1 className="bg-gradient-to-r from-cyan-600 to-blue-800 bg-clip-text text-4xl font-bold tracking-tight text-transparent">
-                DentaFlow
+                DentaGlow
               </h1>
             </div>
 
-            <p className="mt-2 text-slate-500">Sign in to manage your dental clinic</p>
+            <p className="mt-2 text-slate-500">
+              Sign in as <strong>admin</strong> (clinic) or <strong>user</strong> (patient)
+            </p>
           </div>
 
           <div className="rounded-2xl border border-white/80 bg-white/95 p-8 shadow-xl shadow-blue-900/5">
@@ -135,22 +157,22 @@ export function Login() {
               <SoftButton
                 variant="success"
                 type="submit"
-                disabled={loading}
+                disabled={submitting}
                 className="w-full py-3.5 text-base shadow-md shadow-emerald-500/20"
               >
-                {loading ? 'Signing in...' : 'Sign In'}
+                {submitting ? 'Signing in...' : 'Sign In'}
               </SoftButton>
             </form>
           </div>
 
           <p className="mt-6 text-center text-sm text-slate-500 lg:text-left">
-            Need a dental visit?{' '}
-            <a href="/book/login" className="font-medium text-cyan-600 hover:underline">
-              Book as patient
+            New user?{' '}
+            <a href="/book/register" className="font-medium text-cyan-600 hover:underline">
+              Create an account
             </a>
           </p>
           <p className="mt-2 text-center text-xs text-slate-400 lg:text-left">
-            © DentaFlow — Dental clinic management system
+            © DentaGlow — Dental clinic management system
           </p>
         </div>
       </div>
