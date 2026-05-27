@@ -20,7 +20,7 @@ class CustomerAuthController extends Controller
             'last_name' => ['required', 'string', 'max:100'],
             'username' => ['required', 'string', 'max:50', 'unique:users,username'],
             'password' => ['required', 'string', 'min:6'],
-            'email' => ['nullable', 'email', 'max:255'],
+            'email' => ['nullable', 'email', 'max:255', 'unique:users,email'],
             'phone' => ['nullable', 'string', 'max:30'],
             'gender_id' => ['nullable', 'exists:genders,id'],
             'birth_date' => ['nullable', 'date'],

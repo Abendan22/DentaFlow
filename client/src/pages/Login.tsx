@@ -17,7 +17,6 @@ export function Login() {
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
-  const [error, setError] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [fieldErrors, setFieldErrors] = useState({ username: false, password: false })
 
@@ -45,7 +44,6 @@ export function Login() {
     setFieldErrors(errs)
     if (errs.username || errs.password) return
 
-    setError('')
     setSubmitting(true)
     try {
       const result = await login(username, password)
@@ -57,7 +55,7 @@ export function Login() {
         navigate('/dashboard')
       }
     } catch (err) {
-      setError(getErrorMessage(err, 'Invalid username or password.'))
+      toast.error(getErrorMessage(err, 'Invalid username or password.'))
     } finally {
       setSubmitting(false)
     }
@@ -97,12 +95,6 @@ export function Login() {
             <h2 className="mb-6 text-center text-lg font-semibold text-slate-800 lg:text-left">
               Sign in to your account
             </h2>
-
-            {error && (
-              <p className="mb-4 rounded-xl border border-red-100 bg-red-50 px-4 py-3 text-sm text-red-600">
-                {error}
-              </p>
-            )}
 
             <form
               noValidate

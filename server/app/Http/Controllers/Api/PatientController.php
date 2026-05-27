@@ -13,8 +13,10 @@ class PatientController extends Controller
     public function index(Request $request): JsonResponse
     {
         $search = $request->query('search');
+        $perPage = min(max((int) $request->query('per_page', 15), 5), 50);
+        $page = max((int) $request->query('page', 1), 1);
 
-        $patients = Patient::query()
+        $paginator = Patient::query()
             ->with('gender:id,name')
             ->when($search, function ($query, $search) {
                 $query->where(function ($q) use ($search) {
@@ -25,10 +27,21 @@ class PatientController extends Controller
             })
             ->orderBy('last_name')
             ->orderBy('first_name')
-            ->get()
-            ->map(fn (Patient $patient) => $this->formatPatient($patient));
+            ->paginate($perPage, ['*'], 'page', $page);
 
-        return response()->json($patients);
+        $paginator->getCollection()->transform(
+            fn (Patient $patient) => $this->formatPatient($patient)
+        );
+
+        return response()->json([
+            'data' => $paginator->items(),
+            'meta' => [
+                'current_page' => $paginator->currentPage(),
+                'last_page' => $paginator->lastPage(),
+                'per_page' => $paginator->perPage(),
+                'total' => $paginator->total(),
+            ],
+        ]);
     }
 
     public function store(Request $request): JsonResponse

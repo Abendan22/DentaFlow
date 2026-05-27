@@ -19,7 +19,6 @@ class DatabaseSeeder extends Seeder
         }
 
         $male = Gender::where('name', 'Male')->first();
-        $female = Gender::where('name', 'Female')->first();
 
         User::updateOrCreate(
             ['username' => 'admin'],
@@ -75,21 +74,7 @@ class DatabaseSeeder extends Seeder
             );
         }
 
-        $patients = [
-            ['first_name' => 'Andre', 'last_name' => 'Adams', 'middle_name' => 'K', 'gender_id' => $male?->id, 'birth_date' => '1995-06-12'],
-            ['first_name' => 'Mayra', 'last_name' => 'Altenwerth', 'middle_name' => null, 'gender_id' => $female?->id, 'birth_date' => '2001-02-28'],
-            ['first_name' => 'Alex', 'last_name' => 'Smith', 'middle_name' => 'S', 'gender_id' => $male?->id, 'birth_date' => '1989-09-03'],
-        ];
-
-        foreach ($patients as $row) {
-            Patient::updateOrCreate(
-                ['first_name' => $row['first_name'], 'last_name' => $row['last_name'], 'user_id' => null],
-                [
-                    'email' => strtolower($row['first_name']).'.'.strtolower($row['last_name']).'@patient.local',
-                    ...$row,
-                ]
-            );
-        }
+        $this->call(PatientTestSeeder::class);
 
         $services = [
             ['name' => 'Dental Cleaning', 'description' => 'Routine teeth cleaning and polishing', 'price' => 1500, 'is_active' => true],

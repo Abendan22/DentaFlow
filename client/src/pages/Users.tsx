@@ -1,4 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
+import { ListLoadMore } from '../components/ListLoadMore'
+import { usePaginatedList } from '../hooks/usePaginatedList'
 import { useDebouncedValue } from '../utils/useDebouncedValue'
 import api from '../api/client'
 import { Avatar } from '../components/Avatar'
@@ -27,7 +29,6 @@ const emptyForm = {
 export function Users() {
   const toast = useToast()
   const { confirmDelete } = useConfirm()
-  const [users, setUsers] = useState<AppUser[]>([])
   const [genders, setGenders] = useState<Gender[]>([])
   const [search, setSearch] = useState('')
   const debouncedSearch = useDebouncedValue(search)
@@ -40,18 +41,27 @@ export function Users() {
   const [serverPhotoUrl, setServerPhotoUrl] = useState<string | null>(null)
   const [errors, setErrors] = useState({ first_name: false, last_name: false })
 
-  const load = useCallback(async () => {
-    try {
-      const res = await api.get('/patients', { params: { search: debouncedSearch || undefined } })
-      setUsers(res.data)
-    } catch (err) {
-      toast.error(getErrorMessage(err, 'Failed to load patient records.'))
-    }
-  }, [debouncedSearch, toast])
+  const fetchPatients = useCallback(
+    async (page: number) => {
+      try {
+        const res = await api.get('/patients', {
+          params: {
+            page,
+            per_page: 15,
+            search: debouncedSearch || undefined,
+          },
+        })
+        return res.data
+      } catch (err) {
+        toast.error(getErrorMessage(err, 'Failed to load patient records.'))
+        throw err
+      }
+    },
+    [debouncedSearch, toast],
+  )
 
-  useEffect(() => {
-    load()
-  }, [load])
+  const { items: users, loading, loadingMore, hasMore, total, loadMore, refresh } =
+    usePaginatedList<AppUser>(fetchPatients, debouncedSearch)
 
   useEffect(() => {
     api.get('/genders').then((res) => setGenders(res.data))
@@ -128,7 +138,7 @@ export function Users() {
       }
       setModalOpen(false)
       resetPhoto()
-      load()
+      refresh()
     } catch (err) {
       toast.error(getErrorMessage(err, 'Failed to save patient record.'))
     }
@@ -141,7 +151,7 @@ export function Users() {
         try {
           await api.delete(`/patients/${id}`)
           toast.success('Patient record deleted successfully!')
-          load()
+          refresh()
         } catch (err) {
           toast.error(getErrorMessage(err, 'Failed to delete patient record.'))
         }
@@ -180,10 +190,10 @@ export function Users() {
             </tr>
           </thead>
           <tbody>
-            {users.length === 0 ? (
+            {!loading && users.length === 0 ? (
               <tr>
                 <td colSpan={7} className="px-4 py-8 text-center text-gray-500">
-                  No patient records yet. Click Add User to create one.
+                  No patient records yet. Click Add Patient to create one.
                 </td>
               </tr>
             ) : (
@@ -218,6 +228,14 @@ export function Users() {
             )}
           </tbody>
         </table>
+        <ListLoadMore
+          hasMore={hasMore}
+          loading={loading}
+          loadingMore={loadingMore}
+          onLoadMore={loadMore}
+          total={total}
+          shown={users.length}
+        />
       </div>
 
       <Modal
